@@ -1,12 +1,14 @@
-from prefect import flow, task
-from prefect.filesystems import GitHub
+from prefect.deployments import Deployment
+from etl_web_to_gcs import etl_web_to_gcs
+from prefect.filesystems import GitHub 
 
+storage = GitHub.load("zoom-github-storage")
 
-def get_repository():
-    github_block = GitHub.load("zoom-github-storage")
-    code = github_block.get_directory("week_2_workflow_orchestration")
-    code.save('homework4')
-    
+deployment = Deployment.build_from_flow(
+     flow=etl_web_to_gcs,
+     name="github-example",
+     storage=storage,
+     entrypoint="week_2_workflow_orchestration/etl_web_to_gcs.py:etl_web_to_gcs")
 
-if __name__ == '__main__':
-    get_repository()
+if __name__ == "__main__":
+    deployment.apply()
